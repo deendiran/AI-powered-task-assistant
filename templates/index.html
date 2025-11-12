@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Task Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 AI Task Assistant</h1>
+
+    <div class="task-input">
+      <input type="text" id="taskInput" placeholder="Enter a new task..." />
+      <button onclick="addTask()">Add</button>
+    </div>
+
+    <h3>Your Tasks</h3>
+    <ul id="taskList"></ul>
+
+    <button id="analyzeBtn" onclick="analyzeTasks()">Ask AI for Plan</button>
+
+    <div id="aiResponse"></div>
+  </div>
+
+  <script>
+    async function loadTasks() {
+      const res = await fetch("/get_tasks");
+      const data = await res.json();
+      const list = document.getElementById("taskList");
+      list.innerHTML = "";
+      data.tasks.forEach((t) => {
+        list.innerHTML += `<li>${t}</li>`;
+      });
+    }
+
+    async function addTask() {
+      const input = document.getElementById("taskInput");
+      const task = input.value.trim();
+      if (!task) return;
+      const res = await fetch("/add_task", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({task})
+      });
+      input.value = "";
+      loadTasks();
+    }
+
+    async function analyzeTasks() {
+      const btn = document.getElementById("analyzeBtn");
+      const output = document.getElementById("aiResponse");
+      btn.disabled = true;
+      output.innerHTML = "<p><i>AI is analyzing your tasks...</i></p>";
+
+      const res = await fetch("/analyze", {method: "POST"});
+      const data = await res.json();
+
+      btn.disabled = false;
+      if (data.reply) output.innerHTML = `<p><b>AI:</b> ${data.reply}</p>`;
+      else output.innerHTML = `<p style="color:red;">${data.error}</p>`;
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>
