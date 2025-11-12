@@ -7,8 +7,9 @@ app = Flask(__name__)
 # Configure Gemini API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Initialize the Gemini model
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Use the correct model name - choose one of these:
+# gemini-1.5-flash-latest, gemini-1.5-pro-latest, gemini-pro
+model = genai.GenerativeModel('gemini-2.0-flash-001')
 
 # In-memory tasks list (for demo)
 tasks = []
@@ -36,7 +37,7 @@ def analyze():
         return jsonify({"reply": "You have no tasks yet."})
     try:
         # Create prompt for Gemini
-        prompt = f"Here are my tasks: {tasks}. As a helpful productivity assistant, suggest priorities and a short plan. Keep the response concise and practical."
+        prompt = f"Here are my tasks: {tasks}. As a helpful productivity assistant, suggest priorities and a short plan. Keep the response concise and practical (under 150 words)."
         
         # Generate content using Gemini
         response = model.generate_content(prompt)
@@ -45,6 +46,7 @@ def analyze():
         reply = response.text
         return jsonify({"reply": reply})
     except Exception as e:
+        print(f"Error: {e}")  # For debugging
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
